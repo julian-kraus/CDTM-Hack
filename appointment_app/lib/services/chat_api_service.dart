@@ -88,7 +88,7 @@ class MockChatApiService implements ChatApiService {
 }
 
 class RealChatApiService implements ChatApiService {
-  String url = "https://6d8c-217-111-104-75.ngrok-free.app/api/generate_answer";
+  String url = "http://127.0.0.1:3000/api/generate_answer";
 
   @override
   Future<List<ChatMessage>> startConversation({
@@ -114,10 +114,12 @@ class RealChatApiService implements ChatApiService {
     // 2) Delegate to sendMessage (which handles headers, JSON-wrapping,
     //    parsing, etc.)
     return sendMessage([initialMessage]);
+    print("Sent initial message");
   }
 
   @override
   Future<List<ChatMessage>> sendMessage(List<ChatMessage> messages) async {
+    print("Sending message");
     final uri = Uri.parse(url);
 
     // 1) Build headers
@@ -143,6 +145,8 @@ class RealChatApiService implements ChatApiService {
 
     // 4) Decode the JSON response
     final decoded = jsonDecode(resp.body) as Map<String, dynamic>;
+
+    print(decoded);
 
     // 5) Extract the list and convert to ChatMessage
     final history = decoded['Chat History'] as List<dynamic>;

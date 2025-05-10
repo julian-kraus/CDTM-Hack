@@ -75,12 +75,16 @@ class _DataRequestScreenState extends State<DataRequestScreen> {
     _flutterTts = FlutterTts();
     _initSpeech();
     _initTts();
-    _loadPatientInfo(); // <-- new
+    _loadPatientInfo();
   }
 
   /// 1) Load name & birthdate, 2) then show the welcome dialog.
   Future<void> _loadPatientInfo() async {
     final prefs = await SharedPreferences.getInstance();
+    final alreadyShown = prefs.getBool('welcomeShown') ?? false;
+    if (alreadyShown) return;
+
+    await prefs.setBool('welcomeShown', true);
     final name = prefs.getString('name') ?? 'Patient';
     final birthStr =
         prefs.getString('birthdate') ?? DateTime.now().toIso8601String();
@@ -89,12 +93,9 @@ class _DataRequestScreenState extends State<DataRequestScreen> {
       _patientBirthdate = DateTime.parse(birthStr);
     });
     // Wait until after build to show the dialog:
-    if (!shownCheckIn) {
-      shownCheckIn = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _showWelcomeDialog();
-      });
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showWelcomeDialog();
+    });
   }
 
   /// 2) The initial pop-up
@@ -200,6 +201,7 @@ class _DataRequestScreenState extends State<DataRequestScreen> {
       _patientBirthdate = DateTime.parse(birthStr);
       _isLoading = true;
     });
+    print("Loading patient");
     final responses = await ChatApi.instance.startConversation(
       name: _patientName,
       birthdate: _patientBirthdate,
